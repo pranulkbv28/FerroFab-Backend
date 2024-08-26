@@ -5,6 +5,7 @@ from .serializers import UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken
 from rest_framework.response import Response
+from django.contrib.auth.hashers import check_password
 
 class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -63,12 +64,11 @@ class LoginUserView(generics.CreateAPIView):
 
             user = get_object_or_404(User, username=username)
 
-            if not user.check_password(password):
+            if not check_password(password, user.password):
                 return Response(
-                    {
-                        'error': 'Invalid Credentials'
-                    }, status=status.HTTP_401_UNAUTHORIZED
-                    )
+                    {'error': 'Invalid Credentials'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
 
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
